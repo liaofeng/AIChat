@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, HelpCircle } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Message } from "@shared/schema";
 import {
@@ -58,7 +58,7 @@ export default function Chat() {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <Card className="mx-auto max-w-4xl h-[80vh] flex flex-col relative">
-        {/* 场景选择下拉框 */}
+        {/* 场景选择下拉框和帮助文档图标 */}
         <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
           <span className="text-sm font-medium">场景：</span>
           <Select value={selectedScene} onValueChange={setSelectedScene}>
@@ -71,6 +71,15 @@ export default function Chat() {
               <SelectItem value="scene3">场景 3</SelectItem>
             </SelectContent>
           </Select>
+          <a
+            href="https://www.baidu.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-2 p-2 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors"
+            title="帮助文档"
+          >
+            <HelpCircle className="h-5 w-5" />
+          </a>
         </div>
 
         <ScrollArea className="flex-1 p-4">
