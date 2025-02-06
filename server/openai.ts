@@ -1,27 +1,23 @@
 import OpenAI from "openai";
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error("OPENAI_API_KEY environment variable is required");
-}
-
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const mockResponses = [
+  "你好！我很高兴和你聊天。",
+  "这是一个很有趣的话题，能详细说说吗？",
+  "我明白你的意思了，让我想想...",
+  "确实如此，我也是这么认为的。",
+  "这个问题很有深度，值得好好探讨。",
+  "我觉得这个想法很有创意！",
+  "说得对，继续说下去吧。",
+  "这让我想起了一个类似的情况...",
+  "有意思的观点，能举个例子吗？",
+  "我完全理解你的感受。"
+];
 
 export async function getChatCompletion(messages: { role: string; content: string }[]): Promise<string> {
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: messages.map(msg => ({
-        role: msg.role as "user" | "assistant" | "system",
-        content: msg.content
-      })),
-      temperature: 0.7,
-      max_tokens: 1000
-    });
+  // Get the last user message for context (not used in mock implementation)
+  const lastMessage = messages[messages.length - 1];
 
-    return response.choices[0].message.content || "I'm not sure how to respond to that.";
-  } catch (error) {
-    console.error("OpenAI API error:", error);
-    throw new Error("Failed to get response from AI");
-  }
+  // Return a random response
+  const randomIndex = Math.floor(Math.random() * mockResponses.length);
+  return mockResponses[randomIndex];
 }
