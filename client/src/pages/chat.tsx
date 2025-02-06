@@ -64,31 +64,31 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
-      <Card className="mx-auto max-w-4xl h-[80vh] flex flex-col relative">
-        {/* 场景选择下拉框和帮助文档图标 */}
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-          <span className="text-sm font-medium">场景：</span>
-          <Select value={selectedScene} onValueChange={setSelectedScene}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="选择场景" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="scene1">场景 1</SelectItem>
-              <SelectItem value="scene2">场景 2</SelectItem>
-              <SelectItem value="scene3">场景 3</SelectItem>
-            </SelectContent>
-          </Select>
-          <a
-            href="https://www.baidu.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-2 p-2 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors"
-            title="帮助文档"
-          >
-            <HelpCircle className="h-5 w-5" />
-          </a>
-        </div>
+      {/* 场景选择下拉框和帮助文档图标 */}
+      <div className="mx-auto max-w-4xl mb-4 flex justify-end items-center gap-2">
+        <span className="text-sm font-medium">场景：</span>
+        <Select value={selectedScene} onValueChange={setSelectedScene}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="选择场景" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="scene1">场景 1</SelectItem>
+            <SelectItem value="scene2">场景 2</SelectItem>
+            <SelectItem value="scene3">场景 3</SelectItem>
+          </SelectContent>
+        </Select>
+        <a
+          href="https://www.baidu.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-2 p-2 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors"
+          title="帮助文档"
+        >
+          <HelpCircle className="h-5 w-5" />
+        </a>
+      </div>
 
+      <Card className="mx-auto max-w-4xl h-[80vh] flex flex-col">
         <ScrollArea className="flex-1 p-4">
           {messagesLoading ? (
             <div className="flex justify-center p-4">
