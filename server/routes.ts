@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { chatSchema } from "@shared/schema";
 import { ZodError } from "zod";
+import { getChatCompletion } from "./openai";
 
 export function registerRoutes(app: Express): Server {
   app.post("/api/chat", async (req, res) => {
@@ -18,7 +19,20 @@ export function registerRoutes(app: Express): Server {
         content: message
       });
 
-      res.json({ messages: [userMessage] });
+      // Get chat history
+      const history = await storage.getMessages(sessionId);
+
+      // Get AI response
+      const aiResponse = await getChatCompletion(history);
+
+      // Save AI response
+      const assistantMessage = await storage.createMessage({
+        sessionId,
+        role: "assistant",
+        content: aiResponse
+      });
+
+      res.json({ messages: [userMessage, assistantMessage] });
     } catch (error) {
       if (error instanceof ZodError) {
         res.status(400).json({ message: "Invalid request format" });

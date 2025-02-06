@@ -1,18 +1,23 @@
 import OpenAI from "openai";
 
-const mockResponses = [
-  "你好！我很高兴和你聊天。",
-  "这是一个很有趣的话题，能详细说说吗？",
-  "我明白你的意思了，让我想想...",
-  "确实如此，我也是这么认为的。",
-  "这个问题很有深度，值得好好探讨。",
-  "我觉得这个想法很有创意！",
-  "说得对，继续说下去吧。",
-  "这让我想起了一个类似的情况...",
-  "有意思的观点，能举个例子吗？",
-  "我完全理解你的感受。"
-];
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 export async function getChatCompletion(messages: { role: string; content: string }[]): Promise<string> {
-  return "";
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: messages.map(msg => ({
+        role: msg.role === "user" ? "user" : "assistant",
+        content: msg.content
+      })),
+      temperature: 0.7,
+      max_tokens: 1000
+    });
+
+    return response.choices[0].message.content || "很抱歉，我现在无法回答。";
+  } catch (error) {
+    console.error("OpenAI API error:", error);
+    return "抱歉，我遇到了一些问题。请稍后再试。";
+  }
 }
