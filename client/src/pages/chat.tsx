@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
@@ -50,6 +50,13 @@ export default function Chat() {
     e.preventDefault();
     if (input.trim()) {
       mutation.mutate(input.trim());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
     }
   };
 
@@ -112,13 +119,15 @@ export default function Chat() {
         </ScrollArea>
 
         <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2">
-          <Input
+          <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="输入消息..."
+            onKeyDown={handleKeyDown}
+            placeholder="输入消息... (Shift + Enter 发送)"
             disabled={mutation.isPending}
+            className="min-h-[60px] max-h-[200px] resize-none"
           />
-          <Button type="submit" disabled={mutation.isPending}>
+          <Button type="submit" disabled={mutation.isPending} className="self-end">
             {mutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
