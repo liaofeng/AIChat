@@ -22,23 +22,36 @@ export function registerRoutes(app: Express): Server {
       // Get chat history
       const history = await storage.getMessages(sessionId);
 
-      // Get AI response
-      const aiResponse = await getChatCompletion(history);
+      try {
+        // Get AI response
+        const aiResponse = await getChatCompletion(history);
 
-      // Save AI response
-      const assistantMessage = await storage.createMessage({
-        sessionId,
-        role: "assistant",
-        content: aiResponse
-      });
+        // Save AI response
+        const assistantMessage = await storage.createMessage({
+          sessionId,
+          role: "assistant",
+          content: aiResponse
+        });
 
-      res.json({ messages: [userMessage, assistantMessage] });
+        res.json({ messages: [userMessage, assistantMessage] });
+      } catch (error) {
+        console.error("OpenAI API error:", error);
+
+        // Save error message as AI response
+        const errorMessage = await storage.createMessage({
+          sessionId,
+          role: "assistant",
+          content: "抱歉，AI服务暂时不可用，请检查API密钥是否正确设置。"
+        });
+
+        res.json({ messages: [userMessage, errorMessage] });
+      }
     } catch (error) {
       if (error instanceof ZodError) {
-        res.status(400).json({ message: "Invalid request format" });
+        res.status(400).json({ message: "消息格式无效" });
       } else {
         console.error("Chat error:", error);
-        res.status(500).json({ message: "Failed to process chat message" });
+        res.status(500).json({ message: "处理聊天消息时出错" });
       }
     }
   });
@@ -50,7 +63,7 @@ export function registerRoutes(app: Express): Server {
       res.json({ messages });
     } catch (error) {
       console.error("Get messages error:", error);
-      res.status(500).json({ message: "Failed to get messages" });
+      res.status(500).json({ message: "获取消息失败" });
     }
   });
 
