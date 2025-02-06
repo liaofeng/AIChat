@@ -1,0 +1,95 @@
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
+import { Send, Loader2 } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { Message } from "@shared/schema";
+
+export default function Chat() {
+  const [input, setInput] = useState("");
+  const { toast } = useToast();
+  
+  const { data, isLoading: messagesLoading } = useQuery<{ messages: Message[] }>({
+    queryKey: ["/api/messages"],
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (message: string) => {
+      const res = await apiRequest("POST", "/api/chat", { message });
+      return res.json();
+    },
+    onSuccess: () => {
+      setInput("");
+      queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "错误",
+        description: "发送消息失败"
+      });
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim()) {
+      mutation.mutate(input.trim());
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <Card className="mx-auto max-w-4xl h-[80vh] flex flex-col">
+        <ScrollArea className="flex-1 p-4">
+          {messagesLoading ? (
+            <div className="flex justify-center p-4">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {data?.messages?.map((message: Message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`rounded-lg px-4 py-2 max-w-[80%] ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    }`}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+        
+        <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="输入消息..."
+            disabled={mutation.isPending}
+          />
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
+        </form>
+      </Card>
+    </div>
+  );
+}
