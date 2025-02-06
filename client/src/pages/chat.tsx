@@ -12,19 +12,24 @@ import type { Message } from "@shared/schema";
 export default function Chat() {
   const [input, setInput] = useState("");
   const { toast } = useToast();
-  
-  const { data, isLoading: messagesLoading } = useQuery<{ messages: Message[] }>({
+
+  const { data: messagesData, isLoading: messagesLoading } = useQuery<{ messages: Message[] }>({
     queryKey: ["/api/messages"],
   });
 
   const mutation = useMutation({
     mutationFn: async (message: string) => {
       const res = await apiRequest("POST", "/api/chat", { message });
-      return res.json();
+      const data = await res.json();
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setInput("");
-      queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
+      // 更新消息列表
+      const currentMessages = messagesData?.messages || [];
+      queryClient.setQueryData(["/api/messages"], { 
+        messages: [...currentMessages, ...data.messages] 
+      });
     },
     onError: () => {
       toast({
@@ -42,6 +47,8 @@ export default function Chat() {
     }
   };
 
+  const messages = messagesData?.messages || [];
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <Card className="mx-auto max-w-4xl h-[80vh] flex flex-col">
@@ -52,7 +59,7 @@ export default function Chat() {
             </div>
           ) : (
             <div className="space-y-4">
-              {data?.messages?.map((message: Message) => (
+              {messages.map((message: Message) => (
                 <div
                   key={message.id}
                   className={`flex ${
@@ -73,7 +80,7 @@ export default function Chat() {
             </div>
           )}
         </ScrollArea>
-        
+
         <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2">
           <Input
             value={input}
