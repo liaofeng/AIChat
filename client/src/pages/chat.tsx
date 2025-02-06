@@ -8,9 +8,17 @@ import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Message } from "@shared/schema";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Chat() {
   const [input, setInput] = useState("");
+  const [selectedScene, setSelectedScene] = useState("scene1");
   const { toast } = useToast();
 
   const { data: messagesData, isLoading: messagesLoading } = useQuery<{ messages: Message[] }>({
@@ -24,7 +32,6 @@ export default function Chat() {
     },
     onSuccess: (data) => {
       setInput("");
-      // 直接更新本地消息列表
       const currentMessages = messagesData?.messages || [];
       queryClient.setQueryData(["/api/messages"], {
         messages: [...currentMessages, ...data.messages]
@@ -50,7 +57,21 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
-      <Card className="mx-auto max-w-4xl h-[80vh] flex flex-col">
+      <Card className="mx-auto max-w-4xl h-[80vh] flex flex-col relative">
+        {/* 场景选择下拉框 */}
+        <div className="absolute top-4 right-4 z-10">
+          <Select value={selectedScene} onValueChange={setSelectedScene}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="选择场景" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="scene1">场景 1</SelectItem>
+              <SelectItem value="scene2">场景 2</SelectItem>
+              <SelectItem value="scene3">场景 3</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <ScrollArea className="flex-1 p-4">
           {messagesLoading ? (
             <div className="flex justify-center p-4">
