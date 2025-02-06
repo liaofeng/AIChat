@@ -14,10 +14,5 @@ const mockResponses = [
 ];
 
 export async function getChatCompletion(messages: { role: string; content: string }[]): Promise<string> {
-  // Get the last user message for context (not used in mock implementation)
-  const lastMessage = messages[messages.length - 1];
-
-  // Return a random response
-  const randomIndex = Math.floor(Math.random() * mockResponses.length);
-  return mockResponses[randomIndex];
+  return "";
 }
