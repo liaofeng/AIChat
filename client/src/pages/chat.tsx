@@ -20,12 +20,15 @@ export default function Chat() {
   const mutation = useMutation({
     mutationFn: async (message: string) => {
       const res = await apiRequest("POST", "/api/chat", { message });
-      return res.json();
+      return res.json() as Promise<{ messages: Message[] }>;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setInput("");
-      // 使用 invalidateQueries 来刷新消息列表
-      queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
+      // 直接更新本地消息列表
+      const currentMessages = messagesData?.messages || [];
+      queryClient.setQueryData(["/api/messages"], {
+        messages: [...currentMessages, ...data.messages]
+      });
     },
     onError: () => {
       toast({
