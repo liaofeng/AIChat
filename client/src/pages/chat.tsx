@@ -59,7 +59,8 @@ export default function Chat() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <Card className="mx-auto max-w-4xl h-[80vh] flex flex-col relative">
         {/* 场景选择下拉框 */}
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          <span className="text-sm font-medium">场景：</span>
           <Select value={selectedScene} onValueChange={setSelectedScene}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="选择场景" />
