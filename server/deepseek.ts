@@ -30,8 +30,8 @@ export async function getChatCompletion(messages: { role: string; content: strin
       }
     };
 
-    const response = await llm.create(params) as UUnifiedResponse & { text: string };
-    return response.text || "很抱歉，我现在无法回答。";
+    const response = await llm.create(params) as UUnifiedResponse;
+    return response.completion || "很抱歉，我现在无法回答。";
   } catch (error: any) {
     console.error("DeepSeek API error:", error);
 
