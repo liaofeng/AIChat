@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { chatSchema } from "@shared/schema";
 import { ZodError } from "zod";
-import { getChatCompletion } from "./openai";
+import { getChatCompletion } from "./deepseek";
 
 export function registerRoutes(app: Express): Server {
   app.post("/api/chat", async (req, res) => {
