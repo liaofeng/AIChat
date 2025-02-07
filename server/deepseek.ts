@@ -13,14 +13,18 @@ export async function getChatCompletion(messages: { role: string; content: strin
       model_provider: 'deepseek',
       model_name: 'deepseek-chat',
       api_key: apiKey,
+      system_messages: [{
+        type: 'text' as const,
+        content: '你是一个有帮助的助手，用中文回答问题。'
+      }],
       messages: messages.map(msg => ({
-        role: msg.role === "user" ? "user" : "assistant",
+        role: msg.role,
         content: [{
           type: 'text' as const,
           content: msg.content
         }]
       })) as UMessages,
-      model_parameters: {
+      parameters: {
         temperature: 0.7,
         max_tokens: 1000
       }
