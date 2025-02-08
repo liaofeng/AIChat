@@ -64,20 +64,21 @@ describe('routes', () => {
 
   describe('POST /api/chat', () => {
     it('handles valid chat messages', async () => {
-      vi.spyOn(deepseek, 'getChatCompletion').mockResolvedValue('AI response')
+      vi.mocked(getChatCompletion).mockResolvedValue('AI response')
       
       const response = await request(app)
         .post('/api/chat')
         .send({ message: 'test message' })
         .expect(200)
       
-      expect(response.body.messages).toBeDefined()
-      expect(response.body.messages).toHaveLength(2)
-      expect(response.body.messages[0]).toMatchObject({
+      const { messages } = response.body
+      expect(messages).toBeDefined()
+      expect(messages).toHaveLength(2)
+      expect(messages[0]).toMatchObject({
         content: 'test message',
         role: 'user'
       })
-      expect(response.body.messages[1]).toMatchObject({
+      expect(messages[1]).toMatchObject({
         content: 'AI response',
         role: 'assistant'
       })
@@ -93,15 +94,16 @@ describe('routes', () => {
     })
 
     it('handles AI service errors', async () => {
-      vi.spyOn(deepseek, 'getChatCompletion').mockRejectedValue(new Error('API Error'))
+      vi.mocked(getChatCompletion).mockRejectedValue(new Error('API Error'))
       
       const response = await request(app)
         .post('/api/chat')
         .send({ message: 'test message' })
         .expect(200)
       
-      expect(response.body.messages[1].content).toContain('API')
-      expect(response.body.messages[1].role).toBe('assistant')
+      const { messages } = response.body
+      expect(messages[1].content).toBe('抱歉，AI服务暂时不可用，请检查API密钥是否正确设置。')
+      expect(messages[1].role).toBe('assistant')
     })
   })
 
@@ -135,7 +137,7 @@ describe('routes', () => {
         .get('/api/messages')
         .expect(500)
       
-      expect(response.body.message).toBe('获取消息失败')
+      expect(response.body).toEqual({ message: '获取消息失败' })
     })
   })
 })
