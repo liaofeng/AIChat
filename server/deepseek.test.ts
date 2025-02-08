@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getChatCompletion } from './deepseek'
 import { unified, type UUnifiedResponse } from 'unified-llm'
 
+// Mock environment variables at module level
+vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
+
 describe('getChatCompletion', () => {
   beforeEach(() => {
     vi.restoreAllMocks()

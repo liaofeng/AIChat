@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// Mock environment variables at module level
+vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
 import express from 'express'
 import request from 'supertest'
 import { registerRoutes } from './routes'

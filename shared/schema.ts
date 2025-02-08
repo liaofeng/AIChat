@@ -13,6 +13,8 @@ export const messages = pgTable("messages", {
 export const insertMessageSchema = createInsertSchema(messages).omit({ 
   id: true,
   timestamp: true 
+}).extend({
+  role: z.enum(['user', 'assistant'])
 });
 
 export type Message = typeof messages.$inferSelect;
