@@ -55,7 +55,11 @@ describe('useSessions', () => {
     }
 
     expect(result.current.sessions).toHaveLength(10);
-    expect(() => act(() => result.current.createSession())).toThrow('已达到最大会话数量限制');
+    expect(() => {
+      act(() => {
+        result.current.createSession();
+      });
+    }).toThrowError('已达到最大会话数量限制');
   });
 
   it('should delete session and switch to newest', () => {
