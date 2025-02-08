@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { chatSchema } from "@shared/schema";
 import { ZodError } from "zod";
-import { mockService } from "./mock";
+import { mockService } from "./services/mock";
 
 export function registerRoutes(app: Express): Server {
   app.post("/api/chat", async (req, res) => {
@@ -58,7 +58,7 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.get("/api/messages", async (req, res) => {
-    const sessionId = req.session?.id || "default";
+    const sessionId = req.query.sessionId as string || req.session?.id || "default";
     try {
       const messages = await storage.getMessages(sessionId);
       res.json({ messages });
