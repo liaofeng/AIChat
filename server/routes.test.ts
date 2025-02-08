@@ -1,37 +1,29 @@
 import { vi } from 'vitest'
-import type { Message } from '@shared/schema'
-
-const mockMessages: Message[] = []
-const mockStorage = {
-  getMessages: vi.fn().mockImplementation((sessionId: string) => 
-    Promise.resolve(mockMessages.filter(msg => msg.sessionId === sessionId))
-  ),
-  createMessage: vi.fn().mockImplementation((msg: Omit<Message, 'id' | 'timestamp'>) => {
-    const newMessage: Message = {
-      id: mockMessages.length + 1,
-      timestamp: new Date(),
-      ...msg
-    }
-    mockMessages.push(newMessage)
-    return Promise.resolve(newMessage)
-  })
-}
 
 vi.mock('./storage', () => ({
-  storage: mockStorage
+  storage: {
+    getMessages: vi.fn(),
+    createMessage: vi.fn()
+  }
+}))
+
+vi.mock('./deepseek', () => ({
+  getChatCompletion: vi.fn()
 }))
 
 import { describe, it, expect, beforeEach } from 'vitest'
 import express from 'express'
 import request from 'supertest'
 import { registerRoutes } from './routes'
-import * as deepseek from './deepseek'
+import { storage } from './storage'
+import { getChatCompletion } from './deepseek'
 import session from 'express-session'
+import type { Message } from '@shared/schema'
+
+const mockMessages: Message[] = []
 
 describe('routes', () => {
   let app: express.Express
-  let mockStorage: any
-
   beforeEach(() => {
     app = express()
     // Setup session middleware for testing
@@ -51,8 +43,23 @@ describe('routes', () => {
     // Reset mocks and storage
     vi.clearAllMocks()
     mockMessages.length = 0 // Clear the messages array
-    mockStorage.getMessages.mockClear()
-    mockStorage.createMessage.mockClear()
+    
+    // Setup default mock implementations
+    vi.mocked(storage.getMessages).mockImplementation((sessionId: string) => 
+      Promise.resolve(mockMessages.filter(msg => msg.sessionId === sessionId))
+    )
+    
+    vi.mocked(storage.createMessage).mockImplementation((msg: Omit<Message, 'id' | 'timestamp'>) => {
+      const newMessage: Message = {
+        id: mockMessages.length + 1,
+        timestamp: new Date(),
+        ...msg
+      }
+      mockMessages.push(newMessage)
+      return Promise.resolve(newMessage)
+    })
+    
+    vi.mocked(getChatCompletion).mockResolvedValue('AI response')
   })
 
   describe('POST /api/chat', () => {
@@ -109,7 +116,7 @@ describe('routes', () => {
         timestamp: new Date()
       }
       mockMessages.push(testMessage)
-      mockStorage.getMessages.mockResolvedValueOnce([testMessage])
+      vi.mocked(storage.getMessages).mockResolvedValueOnce([testMessage])
       
       const response = await request(app)
         .get('/api/messages')
@@ -122,7 +129,7 @@ describe('routes', () => {
 
     it('handles storage errors', async () => {
       // Mock storage.getMessages to throw
-      mockStorage.getMessages.mockRejectedValueOnce(new Error('Storage error'))
+      vi.mocked(storage.getMessages).mockRejectedValueOnce(new Error('Storage error'))
       
       const response = await request(app)
         .get('/api/messages')
