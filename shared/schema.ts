@@ -21,7 +21,20 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
 export const chatSchema = z.object({
-  message: z.string().min(1).max(2000)
+  message: z.string().min(1).max(2000),
+  sessionId: z.string().optional()
 });
 
 export type ChatRequest = z.infer<typeof chatSchema>;
+
+export interface ChatSession {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface SessionStore {
+  sessions: ChatSession[];
+  currentSessionId: string | null;
+}
