@@ -45,6 +45,10 @@ describe('routes', () => {
       name: 'test-session'
     }))
     app.use(express.json())
+    app.use((req, res, next) => {
+      req.session.id = 'test-session'
+      next()
+    })
     registerRoutes(app)
     
     // Reset mocks and storage
@@ -99,11 +103,14 @@ describe('routes', () => {
   describe('GET /api/messages', () => {
     it('retrieves messages for session', async () => {
       // Add some test messages first
-      await storage.createMessage({
+      const testMessage = await storage.createMessage({
         sessionId: 'test-session',
         role: 'user',
         content: 'test message'
       })
+      
+      // Mock getMessages to return our test message
+      vi.mocked(storage.getMessages).mockResolvedValueOnce([testMessage])
       
       const response = await request(app)
         .get('/api/messages')
@@ -116,8 +123,7 @@ describe('routes', () => {
 
     it('handles storage errors', async () => {
       // Mock storage.getMessages to throw
-      vi.spyOn(MockStorage.prototype, 'getMessages')
-        .mockRejectedValueOnce(new Error('Storage error'))
+      vi.mocked(storage.getMessages).mockRejectedValueOnce(new Error('Storage error'))
       
       const response = await request(app)
         .get('/api/messages')
