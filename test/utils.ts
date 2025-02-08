@@ -1,5 +1,5 @@
-import { type Message } from '@shared/schema'
-import { type IStorage } from '@server/storage'
+import { type Message } from '../shared/schema'
+import { type IStorage } from '../server/storage'
 
 export class MockStorage implements IStorage {
   messages: Message[] = []

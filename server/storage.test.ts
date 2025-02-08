@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { MemStorage } from './storage'
-import type { Message } from '@shared/schema'
+import type { Message } from '../shared/schema'
 
 describe('MemStorage', () => {
   let storage: MemStorage
