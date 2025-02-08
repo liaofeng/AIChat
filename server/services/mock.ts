@@ -1,4 +1,4 @@
-import type { Message } from "../shared/schema";
+import type { Message } from "../../shared/schema";
 
 const RESPONSE_PATTERNS = {
   GREETING: ['你好！很高兴和你交谈。', '你好！有什么我可以帮你的吗？', '你好！让我们开始对话吧。'],

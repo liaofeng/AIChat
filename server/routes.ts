@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { chatSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { mockService } from "./services/mock";
+import { getChatCompletion } from "./deepseek";
 
 export function registerRoutes(app: Express): Server {
   app.post("/api/chat", async (req, res) => {
@@ -23,20 +24,27 @@ export function registerRoutes(app: Express): Server {
       const history = await storage.getMessages(sessionId);
 
       try {
-        // Get mock response
-        const mockMessages = await mockService.chat(message, sessionId);
-        const [userMsg, assistantMsg] = mockMessages;
+        let response: string;
+        if (process.env.NODE_ENV === 'development' && process.env.USE_MOCK_SERVICE === 'true') {
+          // Use mock service in development
+          const mockMessages = await mockService.chat(message, sessionId);
+          const [userMsg, assistantMsg] = mockMessages;
+          response = assistantMsg.content;
+        } else {
+          // Use deepseek in production
+          response = await getChatCompletion(history);
+        }
 
-        // Save mock response
+        // Save response
         const assistantMessage = await storage.createMessage({
           sessionId,
           role: "assistant",
-          content: assistantMsg.content
+          content: response
         });
 
         res.json({ messages: [userMessage, assistantMessage] });
       } catch (error) {
-        console.error("OpenAI API error:", error);
+        console.error("Chat service error:", error);
 
         // Save error message as AI response
         const errorMessage = await storage.createMessage({
