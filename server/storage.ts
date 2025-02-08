@@ -12,10 +12,18 @@ export class MemStorage implements IStorage {
   constructor() {
     this.messages = [];
     this.currentId = 1;
+    // Log storage initialization for debugging
+    console.log('Initializing MemStorage');
+  }
+
+  private logMessages() {
+    console.log('Current messages:', this.messages);
   }
 
   async getMessages(sessionId: string): Promise<Message[]> {
-    return this.messages.filter(msg => msg.sessionId === sessionId);
+    const messages = this.messages.filter(msg => msg.sessionId === sessionId);
+    console.log(`Getting messages for session ${sessionId}:`, messages);
+    return messages;
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
@@ -25,6 +33,8 @@ export class MemStorage implements IStorage {
       timestamp: new Date()
     };
     this.messages.push(message);
+    console.log(`Created message for session ${insertMessage.sessionId}:`, message);
+    this.logMessages();
     return message;
   }
 }

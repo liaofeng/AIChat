@@ -3,11 +3,12 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { chatSchema } from "@shared/schema";
 import { ZodError } from "zod";
+import { mockService } from "./services/mock";
 import { getChatCompletion } from "./deepseek";
 
 export function registerRoutes(app: Express): Server {
   app.post("/api/chat", async (req, res) => {
-    const sessionId = req.session?.id || "default";
+    const sessionId = req.body.sessionId || req.session?.id || "default";
 
     try {
       const { message } = chatSchema.parse(req.body);
@@ -23,19 +24,27 @@ export function registerRoutes(app: Express): Server {
       const history = await storage.getMessages(sessionId);
 
       try {
-        // Get AI response
-        const aiResponse = await getChatCompletion(history);
+        let response: string;
+        if (process.env.NODE_ENV === 'development' && process.env.USE_MOCK_SERVICE === 'true') {
+          // Use mock service in development
+          const mockMessages = await mockService.chat(message, sessionId);
+          const [userMsg, assistantMsg] = mockMessages;
+          response = assistantMsg.content;
+        } else {
+          // Use deepseek in production
+          response = await getChatCompletion(history);
+        }
 
-        // Save AI response
+        // Save response
         const assistantMessage = await storage.createMessage({
           sessionId,
           role: "assistant",
-          content: aiResponse
+          content: response
         });
 
         res.json({ messages: [userMessage, assistantMessage] });
       } catch (error) {
-        console.error("OpenAI API error:", error);
+        console.error("Chat service error:", error);
 
         // Save error message as AI response
         const errorMessage = await storage.createMessage({
@@ -57,7 +66,7 @@ export function registerRoutes(app: Express): Server {
   });
 
   app.get("/api/messages", async (req, res) => {
-    const sessionId = req.session?.id || "default";
+    const sessionId = req.query.sessionId as string || req.session?.id || "default";
     try {
       const messages = await storage.getMessages(sessionId);
       res.json({ messages });

@@ -1,9 +1,11 @@
 import { unified, type UCompletionBaseParams, type UMessages, type UUnifiedResponse } from 'unified-llm';
 
 const llm = unified;
-const apiKey = process.env.DEEPSEEK_API_KEY as string;
+const apiKey = process.env.NODE_ENV === 'development' && process.env.USE_MOCK_SERVICE === 'true' 
+  ? 'mock-key' 
+  : process.env.DEEPSEEK_API_KEY as string;
 
-if (!apiKey) {
+if (!apiKey && (process.env.NODE_ENV !== 'development' || process.env.USE_MOCK_SERVICE !== 'true')) {
   throw new Error("DEEPSEEK_API_KEY environment variable is not set");
 }
 
