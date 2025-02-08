@@ -1,35 +1,32 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { vi } from 'vitest'
+import type { Message } from '@shared/schema'
 
-// Environment variables are set in test/setup.ts
+const mockMessages: Message[] = []
+const mockStorage = {
+  getMessages: vi.fn().mockImplementation((sessionId: string) => 
+    Promise.resolve(mockMessages.filter(msg => msg.sessionId === sessionId))
+  ),
+  createMessage: vi.fn().mockImplementation((msg: Omit<Message, 'id' | 'timestamp'>) => {
+    const newMessage: Message = {
+      id: mockMessages.length + 1,
+      timestamp: new Date(),
+      ...msg
+    }
+    mockMessages.push(newMessage)
+    return Promise.resolve(newMessage)
+  })
+}
+
+vi.mock('./storage', () => ({
+  storage: mockStorage
+}))
+
+import { describe, it, expect, beforeEach } from 'vitest'
 import express from 'express'
 import request from 'supertest'
 import { registerRoutes } from './routes'
-import { MockStorage } from '../test/utils'
 import * as deepseek from './deepseek'
 import session from 'express-session'
-import { storage } from './storage'
-
-import type { Message } from '@shared/schema'
-
-// Move mock to top level due to hoisting
-const mockMessages: Message[] = []
-
-vi.mock('./storage', () => ({
-  storage: {
-    getMessages: vi.fn().mockImplementation((sessionId: string) => 
-      Promise.resolve(mockMessages.filter(msg => msg.sessionId === sessionId))
-    ),
-    createMessage: vi.fn().mockImplementation((msg: Omit<Message, 'id' | 'timestamp'>) => {
-      const newMessage: Message = {
-        id: mockMessages.length + 1,
-        timestamp: new Date(),
-        ...msg
-      }
-      mockMessages.push(newMessage)
-      return Promise.resolve(newMessage)
-    })
-  }
-}))
 
 describe('routes', () => {
   let app: express.Express
@@ -52,9 +49,10 @@ describe('routes', () => {
     registerRoutes(app)
     
     // Reset mocks and storage
-    vi.restoreAllMocks()
     vi.clearAllMocks()
     mockMessages.length = 0 // Clear the messages array
+    mockStorage.getMessages.mockClear()
+    mockStorage.createMessage.mockClear()
   })
 
   describe('POST /api/chat', () => {
@@ -103,14 +101,15 @@ describe('routes', () => {
   describe('GET /api/messages', () => {
     it('retrieves messages for session', async () => {
       // Add some test messages first
-      const testMessage = await storage.createMessage({
+      const testMessage = {
+        id: 1,
         sessionId: 'test-session',
         role: 'user',
-        content: 'test message'
-      })
-      
-      // Mock getMessages to return our test message
-      vi.mocked(storage.getMessages).mockResolvedValueOnce([testMessage])
+        content: 'test message',
+        timestamp: new Date()
+      }
+      mockMessages.push(testMessage)
+      mockStorage.getMessages.mockResolvedValueOnce([testMessage])
       
       const response = await request(app)
         .get('/api/messages')
@@ -123,7 +122,7 @@ describe('routes', () => {
 
     it('handles storage errors', async () => {
       // Mock storage.getMessages to throw
-      vi.mocked(storage.getMessages).mockRejectedValueOnce(new Error('Storage error'))
+      mockStorage.getMessages.mockRejectedValueOnce(new Error('Storage error'))
       
       const response = await request(app)
         .get('/api/messages')
