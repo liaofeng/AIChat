@@ -26,18 +26,25 @@ describe('routes', () => {
   let app: express.Express
   beforeEach(() => {
     app = express()
+    
     // Setup session middleware for testing
     app.use(session({
       secret: 'test-secret',
       resave: false,
-      saveUninitialized: true,
+      saveUninitialized: false,
       name: 'test-session'
     }))
+    
     app.use(express.json())
-    app.use((req, res, next) => {
-      req.session.id = 'test-session'
+    
+    // Setup session ID middleware
+    app.use((req, _res, next) => {
+      if (!req.session.id) {
+        req.session.id = 'test-session'
+      }
       next()
     })
+    
     registerRoutes(app)
     
     // Reset mocks and storage
