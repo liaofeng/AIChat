@@ -12,17 +12,25 @@ import { storage } from './storage'
 // Move mock to top level due to hoisting
 vi.mock('./storage', () => {
   const MockStorage = vi.fn()
-  MockStorage.prototype.getMessages = vi.fn().mockResolvedValue([])
-  MockStorage.prototype.createMessage = vi.fn().mockImplementation((msg) => ({
-    id: 1,
-    timestamp: new Date(),
-    ...msg
-  }))
+  const mockMessages = []
+  MockStorage.prototype.getMessages = vi.fn().mockImplementation((sessionId) => 
+    Promise.resolve(mockMessages.filter(msg => msg.sessionId === sessionId))
+  )
+  MockStorage.prototype.createMessage = vi.fn().mockImplementation((msg) => {
+    const newMessage = {
+      id: mockMessages.length + 1,
+      timestamp: new Date(),
+      ...msg
+    }
+    mockMessages.push(newMessage)
+    return Promise.resolve(newMessage)
+  })
   return { storage: new MockStorage() }
 })
 
 describe('routes', () => {
   let app: express.Express
+  let mockStorage: any
 
   beforeEach(() => {
     app = express()
@@ -37,6 +45,7 @@ describe('routes', () => {
     
     // Reset mocks
     vi.restoreAllMocks()
+    mockStorage = vi.spyOn(MockStorage.prototype, 'getMessages')
   })
 
   describe('POST /api/chat', () => {
@@ -85,7 +94,7 @@ describe('routes', () => {
 
     it('handles storage errors', async () => {
       // Mock storage.getMessages to throw
-      vi.spyOn(MockStorage.prototype, 'getMessages').mockRejectedValue(new Error('Storage error'))
+      mockStorage.mockRejectedValueOnce(new Error('Storage error'))
       
       const response = await request(app)
         .get('/api/messages')
