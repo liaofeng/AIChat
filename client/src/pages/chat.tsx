@@ -5,9 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Loader2, HelpCircle } from "lucide-react";
+import { Send, Loader2, HelpCircle, Plus } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Message } from "@shared/schema";
+import type { Message } from "../../../shared/schema";
+import { useSessions } from "@/hooks/use-sessions";
 import {
   Select,
   SelectContent,
@@ -20,6 +21,7 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [selectedScene, setSelectedScene] = useState("scene1");
   const { toast } = useToast();
+  const { sessions, currentSessionId, setCurrentSessionId, createSession } = useSessions();
 
   const { data: messagesData, isLoading: messagesLoading } = useQuery<{ messages: Message[] }>({
     queryKey: ["/api/messages"],
@@ -64,28 +66,62 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
-      {/* 场景选择下拉框和帮助文档图标 */}
-      <div className="mx-auto max-w-4xl mb-4 flex justify-end items-center gap-2">
-        <span className="text-sm font-medium">场景：</span>
-        <Select value={selectedScene} onValueChange={setSelectedScene}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="选择场景" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="scene1">场景 1</SelectItem>
-            <SelectItem value="scene2">场景 2</SelectItem>
-            <SelectItem value="scene3">场景 3</SelectItem>
-          </SelectContent>
-        </Select>
-        <a
-          href="https://www.baidu.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="ml-2 p-2 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors"
-          title="帮助文档"
-        >
-          <HelpCircle className="h-5 w-5" />
-        </a>
+      {/* 会话选择和场景选择 */}
+      <div className="mx-auto max-w-4xl mb-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Select value={currentSessionId || ''} onValueChange={setCurrentSessionId}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="选择会话" />
+            </SelectTrigger>
+            <SelectContent>
+              {sessions.map(session => (
+                <SelectItem key={session.id} value={session.id}>
+                  {session.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              try {
+                const session = createSession();
+                setCurrentSessionId(session.id);
+              } catch (error) {
+                toast({
+                  variant: "destructive",
+                  title: "错误",
+                  description: "已达到最大会话数量限制 (10)"
+                });
+              }
+            }}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">场景：</span>
+          <Select value={selectedScene} onValueChange={setSelectedScene}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="选择场景" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="scene1">场景 1</SelectItem>
+              <SelectItem value="scene2">场景 2</SelectItem>
+              <SelectItem value="scene3">场景 3</SelectItem>
+            </SelectContent>
+          </Select>
+          <a
+            href="https://www.baidu.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-2 p-2 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors"
+            title="帮助文档"
+          >
+            <HelpCircle className="h-5 w-5" />
+          </a>
+        </div>
       </div>
 
       <Card className="mx-auto max-w-4xl h-[80vh] flex flex-col">
