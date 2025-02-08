@@ -25,3 +25,15 @@ export const chatSchema = z.object({
 });
 
 export type ChatRequest = z.infer<typeof chatSchema>;
+
+export interface ChatSession {
+  id: string;
+  name: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface SessionStore {
+  sessions: ChatSession[];
+  currentSessionId: string | null;
+}
