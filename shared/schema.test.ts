@@ -34,8 +34,8 @@ describe('insertMessageSchema', () => {
   it('rejects invalid role', () => {
     expect(() => insertMessageSchema.parse({
       sessionId: 'test-session',
-      role: 'invalid',
+      role: 'invalid' as any,
       content: 'test message'
-    })).toThrow()
+    })).toThrow('Invalid enum value. Expected \'user\' | \'assistant\', received \'invalid\'')
   })
 })

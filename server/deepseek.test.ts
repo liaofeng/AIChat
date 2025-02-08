@@ -5,7 +5,7 @@ import { unified, type UUnifiedResponse } from 'unified-llm'
 describe('getChatCompletion', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
-    process.env.DEEPSEEK_API_KEY = 'test-key'
+    vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
   })
 
   it('handles successful responses', async () => {

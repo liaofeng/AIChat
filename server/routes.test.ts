@@ -7,10 +7,17 @@ import * as deepseek from './deepseek'
 import session from 'express-session'
 import { storage } from './storage'
 
-// Mock the storage module
-vi.mock('./storage', () => ({
-  storage: new MockStorage()
-}))
+// Move mock to top level due to hoisting
+vi.mock('./storage', () => {
+  const MockStorage = vi.fn()
+  MockStorage.prototype.getMessages = vi.fn().mockResolvedValue([])
+  MockStorage.prototype.createMessage = vi.fn().mockImplementation((msg) => ({
+    id: 1,
+    timestamp: new Date(),
+    ...msg
+  }))
+  return { storage: new MockStorage() }
+})
 
 describe('routes', () => {
   let app: express.Express
