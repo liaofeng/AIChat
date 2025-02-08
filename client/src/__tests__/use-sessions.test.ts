@@ -1,22 +1,22 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react-hooks';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useSessions } from '../hooks/use-sessions';
 
 // Mock localStorage
-const mockLocalStorage = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
-    },
-    clear: () => {
-      store = {};
-    }
-  };
-})();
+const store: Record<string, string> = {};
+const mockLocalStorage = {
+  getItem: vi.fn((key: string) => store[key] || null),
+  setItem: vi.fn((key: string, value: string) => {
+    store[key] = value;
+  }),
+  clear: vi.fn(() => {
+    Object.keys(store).forEach(key => delete store[key]);
+  })
+};
 
-Object.defineProperty(window, 'localStorage', {
-  value: mockLocalStorage
+beforeEach(() => {
+  vi.stubGlobal('localStorage', mockLocalStorage);
+  mockLocalStorage.clear();
 });
 
 describe('useSessions', () => {
