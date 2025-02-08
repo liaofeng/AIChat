@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ export default function Chat() {
   const [selectedScene, setSelectedScene] = useState("scene1");
   const { toast } = useToast();
   const { sessions, currentSessionId, setCurrentSessionId, createSession, deleteSession } = useSessions();
+  const queryClient = useQueryClient();
 
   const { data: messagesData, isLoading: messagesLoading } = useQuery<{ messages: Message[] }>({
     queryKey: ["/api/messages", currentSessionId],
@@ -36,8 +37,9 @@ export default function Chat() {
     },
     onSuccess: (data) => {
       setInput("");
+      // Update messages for current session
       const currentMessages = messagesData?.messages || [];
-      queryClient.setQueryData(["/api/messages"], {
+      queryClient.setQueryData(["/api/messages", currentSessionId], {
         messages: [...currentMessages, ...data.messages]
       });
     },
@@ -63,6 +65,13 @@ export default function Chat() {
       handleSubmit(e);
     }
   };
+
+  useEffect(() => {
+    // Invalidate query cache when switching sessions
+    if (currentSessionId) {
+      queryClient.invalidateQueries({ queryKey: ["/api/messages", currentSessionId] });
+    }
+  }, [currentSessionId, queryClient]);
 
   const messages = messagesData?.messages || [];
 

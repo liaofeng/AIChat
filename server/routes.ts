@@ -7,7 +7,7 @@ import { mockService } from "./mock";
 
 export function registerRoutes(app: Express): Server {
   app.post("/api/chat", async (req, res) => {
-    const sessionId = req.session?.id || "default";
+    const sessionId = req.body.sessionId || req.session?.id || "default";
 
     try {
       const { message } = chatSchema.parse(req.body);
