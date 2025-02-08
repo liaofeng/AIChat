@@ -12,23 +12,24 @@ import { storage } from './storage'
 import type { Message } from '@shared/schema'
 
 // Move mock to top level due to hoisting
-vi.mock('./storage', () => {
-  const MockStorage = vi.fn()
-  const mockMessages: Message[] = []
-  MockStorage.prototype.getMessages = vi.fn().mockImplementation((sessionId: string) => 
-    Promise.resolve(mockMessages.filter(msg => msg.sessionId === sessionId))
-  )
-  MockStorage.prototype.createMessage = vi.fn().mockImplementation((msg: Omit<Message, 'id' | 'timestamp'>) => {
-    const newMessage: Message = {
-      id: mockMessages.length + 1,
-      timestamp: new Date(),
-      ...msg
-    }
-    mockMessages.push(newMessage)
-    return Promise.resolve(newMessage)
-  })
-  return { storage: new MockStorage() }
-})
+const mockMessages: Message[] = []
+
+vi.mock('./storage', () => ({
+  storage: {
+    getMessages: vi.fn().mockImplementation((sessionId: string) => 
+      Promise.resolve(mockMessages.filter(msg => msg.sessionId === sessionId))
+    ),
+    createMessage: vi.fn().mockImplementation((msg: Omit<Message, 'id' | 'timestamp'>) => {
+      const newMessage: Message = {
+        id: mockMessages.length + 1,
+        timestamp: new Date(),
+        ...msg
+      }
+      mockMessages.push(newMessage)
+      return Promise.resolve(newMessage)
+    })
+  }
+}))
 
 describe('routes', () => {
   let app: express.Express
@@ -49,9 +50,7 @@ describe('routes', () => {
     // Reset mocks and storage
     vi.restoreAllMocks()
     vi.clearAllMocks()
-    mockStorage = vi.spyOn(MockStorage.prototype, 'getMessages')
-    // Clear the mock messages array
-    vi.mocked(MockStorage.prototype.getMessages).mockImplementation(() => Promise.resolve([]))
+    mockMessages.length = 0 // Clear the messages array
   })
 
   describe('POST /api/chat', () => {
