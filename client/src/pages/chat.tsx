@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Loader2, HelpCircle, Plus } from "lucide-react";
+import { Send, Loader2, HelpCircle, Plus, Trash2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Message } from "../../../shared/schema";
 import { useSessions } from "@/hooks/use-sessions";
@@ -21,7 +21,7 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [selectedScene, setSelectedScene] = useState("scene1");
   const { toast } = useToast();
-  const { sessions, currentSessionId, setCurrentSessionId, createSession } = useSessions();
+  const { sessions, currentSessionId, setCurrentSessionId, createSession, deleteSession } = useSessions();
 
   const { data: messagesData, isLoading: messagesLoading } = useQuery<{ messages: Message[] }>({
     queryKey: ["/api/messages", currentSessionId],
@@ -83,24 +83,42 @@ export default function Chat() {
               ))}
             </SelectContent>
           </Select>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              try {
-                const session = createSession();
-                setCurrentSessionId(session.id);
-              } catch (error) {
-                toast({
-                  variant: "destructive",
-                  title: "错误",
-                  description: "已达到最大会话数量限制 (10)"
-                });
-              }
-            }}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                try {
+                  const session = createSession();
+                  setCurrentSessionId(session.id);
+                } catch (error) {
+                  toast({
+                    variant: "destructive",
+                    title: "错误",
+                    description: "已达到最大会话数量限制 (10)"
+                  });
+                }
+              }}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                if (currentSessionId) {
+                  deleteSession(currentSessionId);
+                  toast({
+                    title: "会话已删除",
+                    description: "已切换到最新会话"
+                  });
+                }
+              }}
+              disabled={!currentSessionId}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">场景：</span>
