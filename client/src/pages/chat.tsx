@@ -24,12 +24,14 @@ export default function Chat() {
   const { sessions, currentSessionId, setCurrentSessionId, createSession } = useSessions();
 
   const { data: messagesData, isLoading: messagesLoading } = useQuery<{ messages: Message[] }>({
-    queryKey: ["/api/messages"],
+    queryKey: ["/api/messages", currentSessionId],
+    enabled: !!currentSessionId
   });
 
   const mutation = useMutation({
     mutationFn: async (message: string) => {
-      const res = await apiRequest("POST", "/api/chat", { message });
+      if (!currentSessionId) throw new Error('No session selected');
+      const res = await apiRequest("POST", "/api/chat", { message, sessionId: currentSessionId });
       return res.json() as Promise<{ messages: Message[] }>;
     },
     onSuccess: (data) => {
