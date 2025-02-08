@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
-import type { ChatSession, SessionStore } from '@shared/schema';
+import type { ChatSession, SessionStore } from '../../../shared/schema';
 
 const STORAGE_KEY = 'chat_sessions';
 const MAX_SESSIONS = 10;
