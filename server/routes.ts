@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { chatSchema } from "@shared/schema";
 import { ZodError } from "zod";
-import { getChatCompletion } from "./deepseek";
+import { mockService } from "./mock";
 
 export function registerRoutes(app: Express): Server {
   app.post("/api/chat", async (req, res) => {
@@ -23,14 +23,15 @@ export function registerRoutes(app: Express): Server {
       const history = await storage.getMessages(sessionId);
 
       try {
-        // Get AI response
-        const aiResponse = await getChatCompletion(history);
+        // Get mock response
+        const mockMessages = await mockService.chat(message, sessionId);
+        const [userMsg, assistantMsg] = mockMessages;
 
-        // Save AI response
+        // Save mock response
         const assistantMessage = await storage.createMessage({
           sessionId,
           role: "assistant",
-          content: aiResponse
+          content: assistantMsg.content
         });
 
         res.json({ messages: [userMessage, assistantMessage] });
