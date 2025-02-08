@@ -67,9 +67,10 @@ export default function Chat() {
   };
 
   useEffect(() => {
-    // Invalidate query cache when switching sessions
+    // Refetch messages when switching sessions
     if (currentSessionId) {
       queryClient.invalidateQueries({ queryKey: ["/api/messages", currentSessionId] });
+      queryClient.refetchQueries({ queryKey: ["/api/messages", currentSessionId] });
     }
   }, [currentSessionId, queryClient]);
 
