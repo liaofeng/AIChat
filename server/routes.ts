@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { chatSchema } from "@shared/schema";
 import { ZodError } from "zod";
-import { getChatCompletion } from "./deepseek";
+import { getChatCompletion } from "./claude";
 
 export function registerRoutes(app: Express): Server {
   app.post("/api/chat", async (req, res) => {
@@ -35,7 +35,7 @@ export function registerRoutes(app: Express): Server {
 
         res.json({ messages: [userMessage, assistantMessage] });
       } catch (error) {
-        console.error("OpenAI API error:", error);
+        console.error("Claude API error:", error);
 
         // Save error message as AI response
         const errorMessage = await storage.createMessage({
