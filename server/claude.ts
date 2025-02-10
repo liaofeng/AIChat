@@ -15,18 +15,18 @@ export async function getChatCompletion(messages: { role: string; content: strin
     });
 
     if (!response.content[0] || !('text' in response.content[0])) {
-      return "很抱歉，我现在无法回答。";
+      return "Sorry, I cannot answer right now.";
     }
     return response.content[0].text;
   } catch (error: any) {
     console.error("Claude API error:", error);
 
     if (error.status === 429) {
-      return "抱歉，Claude API 使用配额已超限。请检查您的 Anthropic 账户设置。";
+      return "Sorry, Claude API rate limit exceeded. Please check your Anthropic account settings.";
     } else if (error.status === 401) {
-      return "抱歉，Claude API 密钥无效。请提供有效的 API 密钥。";
+      return "Sorry, invalid Claude API key. Please provide a valid API key.";
     } else {
-      return "抱歉，AI 服务暂时出现问题。请稍后再试。";
+      return "Sorry, the AI service is temporarily unavailable. Please try again later.";
     }
   }
 }
