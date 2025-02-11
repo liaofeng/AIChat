@@ -14,12 +14,48 @@ interface AdminPageProps {
   videos: Video[];
   onUpdateVideo: (videoId: string, updatedVideo: Partial<Video>) => void;
   onDeleteVideo: (videoId: string) => void;
+  currentPage: number;
+  setCurrentPage: (page: number | ((prev: number) => number)) => void;
+  totalPages: number;
 }
 
-export function AdminPage({ videos, onUpdateVideo, onDeleteVideo }: AdminPageProps) {
-  const [editingId, setEditingId] = useState<string | null>(null)
+import { v4 as uuid } from 'uuid';
 
-  // No need for useEffect logging
+export function AdminPage({ videos, onUpdateVideo, onDeleteVideo, currentPage, setCurrentPage, totalPages }: AdminPageProps) {
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
+
+  const handleCreate = async (formData: FormData) => {
+    try {
+      const newVideo = {
+        title: formData.get('title') as string,
+        coverUrl: formData.get('coverUrl') as string,
+        length: formData.get('length') as string,
+        author: {
+          name: formData.get('authorName') as string,
+          id: uuid(),
+        },
+        stats: {
+          likes: parseInt(formData.get('likes') as string) || 0,
+          views: parseInt(formData.get('views') as string) || 0,
+          comments: parseInt(formData.get('comments') as string) || 0,
+        },
+        createdAt: new Date().toISOString(),
+      }
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/videos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newVideo)
+      })
+      
+      if (!response.ok) throw new Error('Failed to create video')
+      setIsCreating(false)
+      setCurrentPage(1) // Reset to first page after creating
+    } catch (error) {
+      alert('Failed to create video. Please try again.')
+    }
+  }
 
   const handleEdit = (video: Video) => {
     console.log('Editing video:', video)
@@ -57,8 +93,60 @@ export function AdminPage({ videos, onUpdateVideo, onDeleteVideo }: AdminPagePro
   return (
     <div className="relative" data-editing-id={editingId}>
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Video Management</h2>
-        {/* Removed EditVideoModal - implementing inline editing */}
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Video Management</h2>
+          <Button onClick={() => setIsCreating(true)}>Create Video</Button>
+        </div>
+        
+        {isCreating && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Create New Video</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form id="create-form" onSubmit={(e) => {
+                e.preventDefault()
+                handleCreate(new FormData(e.currentTarget))
+              }} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Title</label>
+                    <Input name="title" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Cover URL</label>
+                    <Input name="coverUrl" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Length</label>
+                    <Input name="length" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Author Name</label>
+                    <Input name="authorName" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Likes</label>
+                    <Input name="likes" type="number" defaultValue="0" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Views</label>
+                    <Input name="views" type="number" defaultValue="0" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Comments</label>
+                    <Input name="comments" type="number" defaultValue="0" />
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button type="submit">Create</Button>
+                  <Button variant="outline" onClick={() => setIsCreating(false)}>Cancel</Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+        
         {videos.map(video => (
         <Card key={video.id}>
           <CardHeader>
@@ -166,6 +254,24 @@ export function AdminPage({ videos, onUpdateVideo, onDeleteVideo }: AdminPagePro
           </CardContent>
         </Card>
       ))}
+
+      <div className="flex justify-center gap-2 mt-4">
+        <Button 
+          variant="outline" 
+          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        <span className="py-2">Page {currentPage}</span>
+        <Button 
+          variant="outline" 
+          onClick={() => setCurrentPage(p => p + 1)}
+          disabled={currentPage >= totalPages}
+        >
+          Next
+        </Button>
+      </div>
       </div>
     </div>
   )
