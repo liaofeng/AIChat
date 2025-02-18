@@ -35,7 +35,7 @@ export function registerRoutes(app: Express): Server {
 
         res.json({ messages: [userMessage, assistantMessage] });
       } catch (error) {
-        console.error("OpenAI API error:", error);
+        console.error("Deepseek API error:", error);
 
         // Save error message as AI response
         const errorMessage = await storage.createMessage({
