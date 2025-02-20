@@ -88,8 +88,8 @@ export default function Chat() {
         </a>
       </div>
 
-      <Card className="mx-auto max-w-4xl h-[80vh] flex flex-col">
-        <ScrollArea className="flex-1 p-4">
+      <Card className="mx-auto max-w-4xl h-[calc(100vh-8rem)] flex flex-col">
+        <ScrollArea className="flex-1 p-4 pb-20">
           {messagesLoading ? (
             <div className="flex justify-center p-4">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -117,8 +117,10 @@ export default function Chat() {
             </div>
           )}
         </ScrollArea>
+      </Card>
 
-        <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2">
+      <form onSubmit={handleSubmit} className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t">
+        <div className="mx-auto max-w-4xl flex gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -134,8 +136,8 @@ export default function Chat() {
               <Send className="h-4 w-4" />
             )}
           </Button>
-        </form>
-      </Card>
+        </div>
+      </form>
     </div>
   );
 }
