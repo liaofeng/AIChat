@@ -107,8 +107,19 @@ export default function Tetris() {
     return TETROMINOS[randomIndex];
   }
 
+  // Define types for tetromino and position
+  type TetrominoType = {
+    shape: number[][];
+    color: string;
+  };
+
+  type PositionType = {
+    x: number;
+    y: number;
+  };
+
   // Check if the current position is valid
-  const isValidPosition = useCallback((tetromino, pos) => {
+  const isValidPosition = useCallback((tetromino: TetrominoType, pos: PositionType) => {
     for (let y = 0; y < tetromino.shape.length; y++) {
       for (let x = 0; x < tetromino.shape[y].length; x++) {
         if (tetromino.shape[y][x] !== 0) {
